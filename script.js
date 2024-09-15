@@ -1,3 +1,4 @@
+// Дані каруселі: масив об'єктів з джерелами зображень і текстом
 const carousel = [
   {
     src: "/local/carousel-image1.png",
@@ -21,13 +22,17 @@ const carousel = [
   },
 ];
 
+// Ініціалізація поточного індексу каруселі, анімації "дихання" кнопки і таймера
 let currentIndex = 0;
 let breathAnimation;
+let carouselInterval;
 
+// Отримання елементів DOM, які будуть оновлюватися
 const imageElement = document.querySelector(".carousel-image");
 const textElement = document.querySelector(".carousel-text");
 const counterElement = document.querySelector(".carousel-pages");
 
+// Функція для оновлення зображення, тексту і лічильника каруселі
 function updateCarousel() {
   const currentImage = carousel[currentIndex];
   imageElement.src = currentImage.src;
@@ -35,6 +40,45 @@ function updateCarousel() {
   counterElement.textContent = `${currentIndex + 1} / ${carousel.length}`;
 }
 
+// Функція для перемикання на наступний слайд каруселі
+function nextSlide() {
+  currentIndex = (currentIndex + 1) % carousel.length;
+  updateCarousel();
+
+  // Анімація тексту та зображення при перемиканні слайду
+  gsap.fromTo(
+    ".carousel-text",
+    { x: 100, opacity: 0 },
+    { x: 0, opacity: 1, duration: 0.5, ease: "power1.out" }
+  );
+
+  gsap.fromTo(
+    ".carousel-read-more-button",
+    { x: 100, opacity: 0 },
+    { x: 0, opacity: 1, duration: 0.5, ease: "power1.out" }
+  );
+
+  gsap.fromTo(
+    ".carousel-image",
+    { opacity: 0 },
+    { opacity: 1, duration: 0.7, ease: "power1.out" }
+  );
+}
+
+// Функція для автоматичного перемикання слайдів кожні 5 секунд
+function startAutoSlide() {
+  carouselInterval = setInterval(() => {
+    nextSlide();
+  }, 5000);
+}
+
+// Функція для зупинки і перезапуску автоматичного перемикання слайдів
+function resetAutoSlide() {
+  clearInterval(carouselInterval);
+  startAutoSlide();
+}
+
+//Функція для додавання анімації "дихання" кнопці купівлі
 function startBreathingEffect() {
   breathAnimation = gsap.to(".buy-button", {
     scale: 1.1,
@@ -44,6 +88,8 @@ function startBreathingEffect() {
     ease: "power1.inOut",
   });
 }
+
+// Анімація для кнопок перемикання каруселі
 function animateCarouselButton(buttonClass, direction) {
   gsap.to(buttonClass, {
     scale: 0.6,
@@ -72,43 +118,56 @@ function animateCarouselButton(buttonClass, direction) {
   );
 }
 
+// Обробка події кліку на кнопку "Read More" для переходу на іншу сторінку
 document
   .querySelector(".carousel-read-more-button")
   .addEventListener("click", () => {
     window.location.assign("load-more.html");
   });
 
+// Обробка події кліку на кнопку "Buy" для переходу на сторінку покупки
 document.querySelector(".buy-button").addEventListener("click", () => {
   window.location.assign("purchase.html");
 });
 
+// Зупинка анімації "дихання" кнопки при наведенні миші
 document.querySelector(".buy-button").addEventListener("mouseenter", () => {
   breathAnimation.pause();
   gsap.to(".buy-button", { scale: 1.1, duration: 0.4 });
 });
 
+// Відновлення анімації "дихання" кнопки після того, як миша залишає кнопку
 document.querySelector(".buy-button").addEventListener("mouseleave", () => {
   breathAnimation.resume();
 });
 
+// Обробка події кліку на кнопку попереднього слайду каруселі
 document
   .querySelector(".carousel-prev-button")
   .addEventListener("click", () => {
     animateCarouselButton(".carousel-prev-button", -1);
     currentIndex = (currentIndex - 1 + carousel.length) % carousel.length;
     updateCarousel();
+    resetAutoSlide();
   });
 
+// Обробка події кліку на кнопку наступного слайду каруселі
 document
   .querySelector(".carousel-next-button")
   .addEventListener("click", () => {
     animateCarouselButton(".carousel-next-button", 1);
     currentIndex = (currentIndex + 1) % carousel.length;
     updateCarousel();
+    resetAutoSlide();
   });
 
+// Оновлення каруселі при завантаженні сторінки
 updateCarousel();
 
+// Запуск автоматичного перемикання каруселі через 5 секунд після завантаження сторінки
+setTimeout(startAutoSlide, 5000);
+
+// Анімації GSAP для елементів на сторінці
 const logoTimeLine = gsap.timeline();
 
 logoTimeLine.from(".logo-image", {
